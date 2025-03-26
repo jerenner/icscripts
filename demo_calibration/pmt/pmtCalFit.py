@@ -135,15 +135,17 @@ def main():
     rnum = sys.argv[1]
     n_gaussians = int(sys.argv[2])
     if n_gaussians < 2:
-        raise ValueError("Number of Gaussians must be > 2")
+        raise ValueError("Number of Gaussians must be >= 2")
 
     # Load data
     file_name = f"pmtCal_R{rnum}.h5"
-    dats = tb.open_file(file_name, 'r')
-    bins = np.array(dats.root.HIST.pmt_dark_bins)
-    specsD = np.array(dats.root.HIST.pmt_dark).sum(axis=0)
-    specsL = np.array(dats.root.HIST.pmt_spe).sum(axis=0)
-    run_no = get_run_number(dats)
+    h5in = tb.open_file(file_name, 'r')
+    bins = np.array(h5in.root.HIST.pmt_dark_bins)
+    specsD = np.array(h5in.root.HIST.pmt_dark).sum(axis=0)
+    specsL = np.array(h5in.root.HIST.pmt_spe).sum(axis=0)
+    run_no = get_run_number(h5in)
+    data_pmt_table = h5in.root.Sensors.DataPMT
+    sensor_ids = [row['sensorID'] for row in data_pmt_table]  # List of SensorIDs for channels 0 to 255
     sensor_type = SensorType.PMT
 
     # Set up output file
@@ -156,6 +158,8 @@ def main():
 
     # Process each PMT channel
     for ich in range(3):  # 3 PMT channels
+        print(f"Fitting sensor {sensor_ids[ich]}...")
+        
         dspec = specsD[ich]
         lspec = specsL[ich]
 
@@ -163,19 +167,19 @@ def main():
         gfitRes = fit_dark_spectrum(bins, dspec)
         ped_vals = gfitRes.values  # norm, mean, sigma
         ped_errs = gfitRes.errors
-        plot_dark_fit(bins, dspec, gfitRes, ich, rnum)
+        plot_dark_fit(bins, dspec, gfitRes, sensor_ids[ich], rnum)
 
         # Compute seeds and bounds
-        seeds, bounds = compute_seeds_and_bounds(sensor_type, run_no, ich, bins, lspec, dspec, ped_vals, ped_errs, n_gaussians)
+        seeds, bounds = compute_seeds_and_bounds(sensor_type, run_no, sensor_ids[ich], bins, lspec, dspec, ped_vals, ped_errs, n_gaussians)
 
         # Perform the fit
         rfit = perform_fit(fit_func, bins, lspec, seeds, bounds)
 
         # Plot the results
-        plot_fit(bins, lspec, rfit, ich, rnum)
+        plot_fit(bins, lspec, rfit, sensor_ids[ich], rnum)
 
         # Save fit parameters
-        save_fit_params(param_writer, ich, rfit, n_gaussians, bins, 0, len(bins)-1)
+        save_fit_params(param_writer, sensor_ids[ich], rfit, n_gaussians, bins, 0, len(bins)-1)
 
     pOut.close()
 

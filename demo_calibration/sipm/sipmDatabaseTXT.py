@@ -47,7 +47,11 @@ sigma_err = np.linalg.norm(np.array([j for j in sigma_err_list]), axis=0)
 #param_names = ['MinRun', 'MaxRun', 'SensorID', 'Centroid', 'ErrorCentroid', 'Sigma', 'ErrorSigma']
 with open('sipmDBvalues_R'+str(min_run)+'.txt', 'w') as out_file:
     for n,sens in enumerate(sensor_number):
-        out_file.write(str(min_run)+',100000,'+str(sens)        +','
+        out_file.write('('+str(min_run)+',100000,'+str(sens)        +','
                         +str(gain[n]) +','+str(gain_err[n]) +','
-                        +str(sigma[n])+','+str(sigma_err[n])+'\n')
+                        +str(sigma[n])+','+str(sigma_err[n]))
+        if n == 255:
+            out_file.write(');')
+        else:
+            out_file.write('),\n')
 
