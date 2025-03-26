@@ -11,11 +11,11 @@ parser.add_argument('file_in', type=str, help='Name of the file') #positional ar
 ns     = parser.parse_args()
 
 data_file   = ns.file_in
-run_number  = data_file[data_file.find('R')+1:data_file.find('R')+5] #the run number should be an integer, adjust the selection accordinggly
+run_number  = data_file[data_file.find('R')+1:data_file.find('R')+6] #the run number should be an integer, adjust the selection accordinggly
 
 param_names = ['gain', 'gain_sigma', 'poisson_mu', 'n_gaussians_chi2']
 
-read_params = partial(spr, table_name='FIT_sipm_scaled_dark_pedestal',
+read_params = partial(spr, table_name='FIT_sipm_two_gaussians',
                       param_names=param_names)
 
 with open('sipmGain_R'+run_number+'.txt', 'w') as out_file:

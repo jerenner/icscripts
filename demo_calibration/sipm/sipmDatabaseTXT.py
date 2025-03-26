@@ -15,7 +15,7 @@ ns       = parser.parse_args()
 
 min_run  = ns.integer
 files    = ns.files
-run_nos  = [f[f.find('R')+1:f.find('R')+5] for f in files]
+run_nos  = [f[f.find('R')+1:f.find('R')+6] for f in files]
 
 sensor_number  = []
 gain_list      = [[] for i in range(len(files))]
